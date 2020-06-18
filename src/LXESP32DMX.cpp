@@ -51,7 +51,7 @@ static void sendDMX( void * param ) {
     LXSerial2.waitFIFOEmpty();		//returns at about byte 384 ~128 bytes left 128 * 44 = 5.6 ms
     LXSerial2.waitTXDone();
     				  		// break at end is actually for next packet...
-
+    ESP32DMX.setDMXPacketSent(1);
   }
   
   // signal task end and wait for task to be deleted
@@ -174,6 +174,8 @@ void LX32DMX::startOutput ( uint8_t pin, UBaseType_t priorityOverIdle ) {
 		stop();
 	}
 	
+	setDMXPacketSent(0);
+	
 	if ( _direction_pin != DIRECTION_PIN_NOT_USED ) {
 		digitalWrite(_direction_pin, HIGH);
 	}
@@ -193,7 +195,7 @@ void LX32DMX::startOutput ( uint8_t pin, UBaseType_t priorityOverIdle ) {
                     &_xHandle );
             
     if( xReturned != pdPASS ) {
-        _xHandle = NULL;
+        _xHandle = NULL;				// task create failed
     }
 }
 
@@ -444,6 +446,14 @@ void LX32DMX::printReceivedData( void ) {
 
 void LX32DMX::setDataReceivedCallback(LXRecvCallback callback) {
 	_receive_callback = callback;
+}
+
+void LX32DMX::setDMXPacketSent( uint8_t ps) {
+	_dmx_sent = ps;
+}
+
+uint8_t LX32DMX::dmxPacketSent() {
+	return _dmx_sent;
 }
 
 /************************************ RDM Methods **************************************/
